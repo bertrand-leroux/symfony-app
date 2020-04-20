@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: brtrnd
+      MYSQL_PASSWORD: brtrnd
+      MYSQL_DATABASE: brtrnd
+    ports:
+      - '33306:3306'
+    networks:
+      - brtrnd-network
+
+  mysql-test:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: brtrnd
+      MYSQL_PASSWORD: brtrnd
+      MYSQL_DATABASE: brtrnd
+    networks:
+      - brtrnd-network
+
+  fpm:
+    image: jmleroux/fpm:php-7.2
+    environment:
+      COMPOSER_HOME: /home/docker/.composer
+      PHP_IDE_CONFIG: 'serverName=brtrnd-cli'
+      PHP_XDEBUG_ENABLED: 1
+      PHP_XDEBUG_REMOTE_HOST: 172.17.0.1
+      XDEBUG_CONFIG: 'remote_host=172.17.0.1'
+    user: docker
+    volumes:
+      - ./:/srv/brtrnd
+      - ~/.composer:/home/docker/.composer
+    working_dir: /srv/brtrnd
+    networks:
+      - brtrnd-network
+
+  httpd:
+    image: httpd:2.4
+    ports:
+      - '${APP_HTTP_PORT}:80'
+    depends_on:
+      - fpm
+    environment:
+      PHP_IDE_CONFIG: 'serverName=brtrnd-server'
+    volumes:
+      - ./:/srv/brtrnd:ro
+      - ./config/docker/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./config/docker/brtrnd.conf:/usr/local/apache2/conf/vhost.conf
+    networks:
+      - brtrnd-network
+
+networks:
+  brtrnd-network:
