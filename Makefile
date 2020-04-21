@@ -64,9 +64,5 @@ tests:
 coverage:
 	$(DOCKER_RUN_XDEBUG) vendor/bin/simple-phpunit --coverage-html var/coverage
 
-.PHONY: update
-update:
-	git pull && rm var/cache/* -rf && composer install && docker-compose run --rm node yarn build
-
 cs-fix:
 	$(DOCKER_RUN) ./vendor/bin/php-cs-fixer fix --diff --config=.php_cs.dist
